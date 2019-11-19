@@ -1,3 +1,6 @@
+#include <vector>
+
+
 constexpr int32_t maze_width		= 224;
 constexpr int32_t maze_height		= 248;
 constexpr int32_t tile_map_width	= maze_width / 8;
@@ -14,6 +17,8 @@ enum tile_flags : uint8_t
 	tile_flags_open_left	= 0x04,
 	tile_flags_open_right	= 0x08,
 };
+
+//28 x 31
 
 static uint8_t tile_map[tile_map_width * tile_map_height] = {
 	0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,0x0,
@@ -56,7 +61,28 @@ static int32_t	pathman_tile_y	= 1;
 static int32_t	ghost_tile_x	= 13;
 static int32_t	ghost_tile_y	= 17;
 
-static void draw_sprite(sprite_batch* sb, texture* sprite_sheet, int32_t tile_x, int32_t tile_y, int32_t src_x, int32_t src_y)
+struct customNode {
+	int x;
+	int y;
+	int gScore;
+	int hScore;
+	customNode* parent;
+};
+
+struct Vector2 {
+
+	int x;
+	int y;
+
+	Vector2(int xp, int yp) {
+		x = xp;
+		y = yp;
+	}
+
+};
+
+
+void draw_sprite(sprite_batch* sb, texture* sprite_sheet, int32_t tile_x, int32_t tile_y, int32_t src_x, int32_t src_y)
 {
 	const int32_t x = (tile_x * 8) - 3;
 	const int32_t y = (tile_y * 8) - 3;
@@ -64,7 +90,221 @@ static void draw_sprite(sprite_batch* sb, texture* sprite_sheet, int32_t tile_x,
 	sprite_batch_draw(sb, sprite_sheet, x * display_scale, y * display_scale, 14 * display_scale, 14 * display_scale, src_x, src_y, 14, 14);
 }
 
-static void render(d3d_context* d3d, sprite_batch* sb, texture* sprite_sheet)
+int manhattanFinder(Vector2 a, Vector2 b)
+{
+	return abs(a.x - b.x) + abs(a.y - b.y);
+}
+
+customNode* getSquareLowestFScore(std::vector<customNode*> openlist) {
+
+	customNode* toReturn;
+	bool firstRun = true;
+	int fScoreRecord;
+	for (customNode* node : openlist) {
+		if (firstRun) {
+			fScoreRecord = node->gScore + node->hScore;
+			toReturn = node;
+			firstRun = false;
+		} else {
+			int overall = node->gScore + node->hScore;
+			if (overall < fScoreRecord) {
+				toReturn = node;
+				fScoreRecord = overall;
+			}
+		}
+	}
+
+	return toReturn;
+}
+
+void removeFromVector(customNode* nodeToRemove, std::vector<customNode*>& openList) {
+	for (int i = 0; i < openList.size(); i++) {
+		if (openList.at(i)->x == nodeToRemove->x && openList.at(i)->y == nodeToRemove->y) {
+			openList.erase(openList.begin() + i);
+		}
+	}
+}
+
+bool vectorContains(customNode* containNode, std::vector<customNode*>& nodeVector) {
+	bool contains = false;
+	for (customNode* node : nodeVector) {
+		if (node->x == containNode->x && node->y == containNode->y) {
+			contains = true;
+		}
+	}
+
+	return contains;
+}
+
+uint8_t GetObjectAtWorldPos(int32_t x, int32_t y) {
+	if (x < 0 || x > 28) return 0x00;
+	if (y < 0 || y > 31) return 0x00;
+
+	return tile_map[x*y];
+}
+
+//std::vector<customNode*> adjSquares;
+
+std::vector<customNode*> getAdjacentSquares(customNode* node, customNode* destination) {
+
+	std::vector<customNode*> adjSquares;
+
+	bool aboveBool = false;
+	bool belowBool = false;
+	bool leftBool = false;
+	bool rightBool = false;
+
+	//above
+	if (GetObjectAtWorldPos(node->x, node->y + 1) != 0x00) {
+		customNode* above = new customNode();
+		above->x = node->x;
+		above->y = node->y + 1;
+		above->gScore = node->gScore + 1;
+		above->hScore = manhattanFinder(Vector2(above->x, above->y), Vector2(destination->x, destination->y));
+		above->parent = node;
+		aboveBool = true;
+		adjSquares.push_back(above);
+	}
+	////below
+	//if (GetObjectAtWorldPos(node->x, node->y - 1) != 0x00) {
+	//	customNode* below = new customNode();
+	//	below->x = node->x;
+	//	below->y = node->y - 1;
+	//	below->gScore = node->gScore + 1;
+	//	below->hScore = manhattanFinder(Vector2(below->x, below->y), Vector2(destination->x, destination->y));
+	//	below->parent = node;
+	//	belowBool = true;
+	//	adjSquares.push_back(below);
+	//}
+
+	////left
+	//if (GetObjectAtWorldPos(node->x - 1, node->y) != 0x00) {
+	//	customNode* left = new customNode();
+	//	left->x = node->x - 1;
+	//	left->y = node->y;
+	//	left->gScore = node->gScore + 1;
+	//	left->hScore = manhattanFinder(Vector2(left->x, left->y), Vector2(destination->x, destination->y));
+	//	left->parent = node;
+	//	leftBool = true;
+	//	adjSquares.push_back(left);
+	//}
+
+	////right
+	//if (GetObjectAtWorldPos(node->x + 1, node->y) != 0x00) {
+	//	customNode* right = new customNode();
+	//	right->x = node->x + 1;
+	//	right->y = node->y;
+	//	right->gScore = node->gScore + 1;
+	//	right->hScore = manhattanFinder(Vector2(right->x, right->y), Vector2(destination->x, destination->y));
+	//	right->parent = node;
+	//	rightBool = true;
+	//	adjSquares.push_back(right);
+	//}
+
+
+	return adjSquares;
+}
+
+void PathFind() {
+
+	//std::vector<customNode*> openList; // all considered squares/nodes to find the shortest path
+	//std::vector<customNode*> closedList; // Squares/nodes not to consider again
+
+	//std::vector<customNode*> complete; // List of the completed path
+
+	//customNode* start = new customNode();
+	//start->x = round(pathman_tile_x); // Initial Enemy Pos
+	//start->y = round(pathman_tile_y); // Initial Enemy Pos
+	//start->gScore = 0; // Distance from the start point - worked out by using parents value and adding 1 - Diagonals increment by 2 so there favoured
+	//start->hScore = manhattanFinder(Vector2(start->x, start->y), Vector2(ghost_tile_x, ghost_tile_y)); // Get very aprox distance from the destination using the manhattan method
+	//start->parent = nullptr; // Parent used for tracking route
+
+	//customNode* destNode = new customNode();
+	//destNode->x = round(ghost_tile_x);
+	//destNode->y = round(ghost_tile_y);
+	//destNode->gScore = 0;
+	//destNode->hScore = 0;
+
+	//openList.push_back(start); // Add the start point to the open list
+
+	//do {
+
+	//	customNode* currentSquare = getSquareLowestFScore(openList); //Get the square with the lowest FScore
+
+	//	closedList.push_back(currentSquare); // Add the lowest fscored square to closed list
+	//	removeFromVector(currentSquare, openList); // Remove the current Square from the openList
+
+	//	if (vectorContains(destNode, closedList)) { // We are at the destination
+
+	//		customNode* tmp = currentSquare; // begin the tmp list from the current square
+
+	//		do {
+	//			complete.push_back(tmp); // Add node to completed list
+	//			tmp = tmp->parent; // Go backward finding path
+	//		} while (tmp != nullptr); // Loop untill the parent is nullptr
+
+	//		break;
+	//	}
+
+	//	std::vector<customNode*> adjacentSquares = getAdjacentSquares(currentSquare, destNode); // Get all the adjacent grid boxes - excluding walls
+
+
+	//	for (int index = 0; index < adjacentSquares.size(); index++) { // Loop through adjacent nodes/squares
+
+	//		if (vectorContains(adjacentSquares.at(index), closedList)) { // If the selected node/square is in the closedlist just ignore
+	//			continue;
+	//		}
+
+	//		if (!(vectorContains(adjacentSquares.at(index), openList))) { // if the square/node isnt in the open list then add it
+
+	//			openList.push_back(adjacentSquares.at(index));
+
+	//		}
+	//		else { // This is kinda optional but used to 'better' routes
+
+	//			if ((currentSquare->gScore + 1) < adjacentSquares.at(index)->gScore) { //Check if the adjacent square/node has a better gscore than the currentSquares
+
+	//				customNode* newOne = adjacentSquares.at(index); // Using that node we assign it to a new pointer
+	//				newOne->gScore = currentSquare->gScore + 1; // Add 1 to the score
+
+	//				removeFromVector(adjacentSquares.at(index), openList); // remove the old version with the old score from the open list 
+
+	//				openList.push_back(newOne); // re-add to list with new score
+
+	//			}
+
+	//		}
+
+	//	}
+
+
+	//} while (!openList.empty()); // loop while the openList is not empty
+
+
+	//std::vector<Vector2> pathToReturn;
+
+
+	//for (int i = complete.size(); i != 0; i--) {
+	//	pathToReturn.push_back(Vector2(complete.at(i - 1)->x, complete.at(i - 1)->y));
+	//}
+
+	////Releasing
+	//for (customNode* node : openList) {
+	//	delete node;
+	//}
+	//openList.empty();
+	//for (customNode* node : closedList) {
+	//	delete node;
+	//}
+	//closedList.empty();
+	//complete.empty();
+
+	////return pathToReturn;
+
+}
+
+
+void render(d3d_context* d3d, sprite_batch* sb, texture* sprite_sheet)
 {
 	sprite_batch_begin(sb);
 
@@ -85,13 +325,15 @@ static void render(d3d_context* d3d, sprite_batch* sb, texture* sprite_sheet)
 	else
 		draw_sprite(sb, sprite_sheet, pathman_tile_x, pathman_tile_y, 489, 1);
 
+	PathFind();
+
 	if (++pathman_anim_counter == 24)
 		pathman_anim_counter = 0;
 
 	sprite_batch_end(sb);
 }
 
-static void load_sprite_sheet(texture* sprite_sheet, d3d_context* d3d)
+void load_sprite_sheet(texture* sprite_sheet, d3d_context* d3d)
 {
 	size_t image_file_size;
 	void* image_file_data = read_entire_file("asset/pacman.png", &image_file_size);

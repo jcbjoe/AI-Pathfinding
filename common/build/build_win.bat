@@ -89,6 +89,6 @@ rem Invoke compiler
 /Fm"%my_dir%..\..\%target_name%\build\win_%debug_mode%\%target_name%.map" ^
 /I %vc_include% /I "%sdk_include%\um" /I "%sdk_include%\ucrt" /I "%sdk_include%\shared" ^
 %targets% ^
-/link /OPT:ref /subsystem:windows /entry:"main" /incremental:no /NODEFAULTLIB ^
+/link /OPT:ref /subsystem:windows /entry:"main" /incremental:no ^
 kernel32.lib user32.lib ucrt.lib vcruntime.lib msvcrt.lib dxgi.lib d3d11.lib dxguid.lib d3dcompiler.lib ole32.lib ^
 /LIBPATH:%vc_lib% /LIBPATH:%sdk_lib% /LIBPATH:%ucrt_lib%

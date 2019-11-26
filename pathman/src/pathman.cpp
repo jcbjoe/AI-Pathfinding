@@ -1,21 +1,21 @@
 #include <vector>
 
 
-constexpr int32_t maze_width		= 224;
-constexpr int32_t maze_height		= 248;
-constexpr int32_t tile_map_width	= maze_width / 8;
-constexpr int32_t tile_map_height	= maze_height / 8;
-constexpr int32_t display_scale		= 4;
-constexpr int32_t display_width		= maze_width * display_scale;
-constexpr int32_t display_height	= maze_height * display_scale;
+constexpr int32_t maze_width = 224;
+constexpr int32_t maze_height = 248;
+constexpr int32_t tile_map_width = maze_width / 8;
+constexpr int32_t tile_map_height = maze_height / 8;
+constexpr int32_t display_scale = 4;
+constexpr int32_t display_width = maze_width * display_scale;
+constexpr int32_t display_height = maze_height * display_scale;
 
 enum tile_flags : uint8_t
 {
-	tile_flags_wall			= 0x00,
-	tile_flags_open_up		= 0x01,
-	tile_flags_open_down	= 0x02,
-	tile_flags_open_left	= 0x04,
-	tile_flags_open_right	= 0x08,
+	tile_flags_wall = 0x00,
+	tile_flags_open_up = 0x01,
+	tile_flags_open_down = 0x02,
+	tile_flags_open_left = 0x04,
+	tile_flags_open_right = 0x08,
 };
 
 //28 x 31
@@ -56,10 +56,10 @@ static uint8_t tile_map[tile_map_width * tile_map_height] = {
 
 static uint32_t	pathman_anim_counter;
 static uint32_t	ghost_anim_counter;
-static int32_t	pathman_tile_x	= 1;
-static int32_t	pathman_tile_y	= 1;
-static int32_t	ghost_tile_x	= 13;
-static int32_t	ghost_tile_y	= 17;
+static int32_t	pathman_tile_x = 1;
+static int32_t	pathman_tile_y = 1;
+static int32_t	ghost_tile_x = 13;
+static int32_t	ghost_tile_y = 18;
 
 struct customNode {
 	int x;
@@ -105,7 +105,8 @@ customNode* getSquareLowestFScore(std::vector<customNode*> openlist) {
 			fScoreRecord = node->gScore + node->hScore;
 			toReturn = node;
 			firstRun = false;
-		} else {
+		}
+		else {
 			int overall = node->gScore + node->hScore;
 			if (overall < fScoreRecord) {
 				toReturn = node;
@@ -139,8 +140,8 @@ bool vectorContains(customNode* containNode, std::vector<customNode*>& nodeVecto
 uint8_t GetObjectAtWorldPos(int32_t x, int32_t y) {
 	if (x < 0 || x > 28) return 0x00;
 	if (y < 0 || y > 31) return 0x00;
-
-	return tile_map[x*y];
+	int gridCalculation = (x * 28) + y;
+	return tile_map[gridCalculation];
 }
 
 //std::vector<customNode*> adjSquares;
@@ -165,142 +166,151 @@ std::vector<customNode*> getAdjacentSquares(customNode* node, customNode* destin
 		aboveBool = true;
 		adjSquares.push_back(above);
 	}
-	////below
-	//if (GetObjectAtWorldPos(node->x, node->y - 1) != 0x00) {
-	//	customNode* below = new customNode();
-	//	below->x = node->x;
-	//	below->y = node->y - 1;
-	//	below->gScore = node->gScore + 1;
-	//	below->hScore = manhattanFinder(Vector2(below->x, below->y), Vector2(destination->x, destination->y));
-	//	below->parent = node;
-	//	belowBool = true;
-	//	adjSquares.push_back(below);
-	//}
+	//below
+	if (GetObjectAtWorldPos(node->x, node->y - 1) != 0x00) {
+		customNode* below = new customNode();
+		below->x = node->x;
+		below->y = node->y - 1;
+		below->gScore = node->gScore + 1;
+		below->hScore = manhattanFinder(Vector2(below->x, below->y), Vector2(destination->x, destination->y));
+		below->parent = node;
+		belowBool = true;
+		adjSquares.push_back(below);
+	}
 
-	////left
-	//if (GetObjectAtWorldPos(node->x - 1, node->y) != 0x00) {
-	//	customNode* left = new customNode();
-	//	left->x = node->x - 1;
-	//	left->y = node->y;
-	//	left->gScore = node->gScore + 1;
-	//	left->hScore = manhattanFinder(Vector2(left->x, left->y), Vector2(destination->x, destination->y));
-	//	left->parent = node;
-	//	leftBool = true;
-	//	adjSquares.push_back(left);
-	//}
+	//left
+	if (GetObjectAtWorldPos(node->x - 1, node->y) != 0x00) {
+		customNode* left = new customNode();
+		left->x = node->x - 1;
+		left->y = node->y;
+		left->gScore = node->gScore + 1;
+		left->hScore = manhattanFinder(Vector2(left->x, left->y), Vector2(destination->x, destination->y));
+		left->parent = node;
+		leftBool = true;
+		adjSquares.push_back(left);
+	}
 
-	////right
-	//if (GetObjectAtWorldPos(node->x + 1, node->y) != 0x00) {
-	//	customNode* right = new customNode();
-	//	right->x = node->x + 1;
-	//	right->y = node->y;
-	//	right->gScore = node->gScore + 1;
-	//	right->hScore = manhattanFinder(Vector2(right->x, right->y), Vector2(destination->x, destination->y));
-	//	right->parent = node;
-	//	rightBool = true;
-	//	adjSquares.push_back(right);
-	//}
+	//right
+	if (GetObjectAtWorldPos(node->x + 1, node->y) != 0x00) {
+		customNode* right = new customNode();
+		right->x = node->x + 1;
+		right->y = node->y;
+		right->gScore = node->gScore + 1;
+		right->hScore = manhattanFinder(Vector2(right->x, right->y), Vector2(destination->x, destination->y));
+		right->parent = node;
+		rightBool = true;
+		adjSquares.push_back(right);
+	}
 
 
 	return adjSquares;
 }
 
+int count = 0;
+
 void PathFind() {
 
-	//std::vector<customNode*> openList; // all considered squares/nodes to find the shortest path
-	//std::vector<customNode*> closedList; // Squares/nodes not to consider again
+	std::vector<customNode*> openList; // all considered squares/nodes to find the shortest path
+	std::vector<customNode*> closedList; // Squares/nodes not to consider again
 
-	//std::vector<customNode*> complete; // List of the completed path
+	std::vector<customNode*> complete; // List of the completed path
 
-	//customNode* start = new customNode();
-	//start->x = round(pathman_tile_x); // Initial Enemy Pos
-	//start->y = round(pathman_tile_y); // Initial Enemy Pos
-	//start->gScore = 0; // Distance from the start point - worked out by using parents value and adding 1 - Diagonals increment by 2 so there favoured
-	//start->hScore = manhattanFinder(Vector2(start->x, start->y), Vector2(ghost_tile_x, ghost_tile_y)); // Get very aprox distance from the destination using the manhattan method
-	//start->parent = nullptr; // Parent used for tracking route
+	customNode* start = new customNode();
+	start->x = pathman_tile_x; // Initial Enemy Pos
+	start->y = pathman_tile_y; // Initial Enemy Pos
+	start->gScore = 0; // Distance from the start point - worked out by using parents value and adding 1 - Diagonals increment by 2 so there favoured
+	start->hScore = manhattanFinder(Vector2(start->x, start->y), Vector2(ghost_tile_x, ghost_tile_y)); // Get very aprox distance from the destination using the manhattan method
+	start->parent = nullptr; // Parent used for tracking route
 
-	//customNode* destNode = new customNode();
-	//destNode->x = round(ghost_tile_x);
-	//destNode->y = round(ghost_tile_y);
-	//destNode->gScore = 0;
-	//destNode->hScore = 0;
+	customNode* destNode = new customNode();
+	destNode->x = ghost_tile_x;
+	destNode->y = ghost_tile_y;
+	destNode->gScore = 0;
+	destNode->hScore = 0;
 
-	//openList.push_back(start); // Add the start point to the open list
+	openList.push_back(start); // Add the start point to the open list
 
-	//do {
+	do {
 
-	//	customNode* currentSquare = getSquareLowestFScore(openList); //Get the square with the lowest FScore
+		customNode* currentSquare = getSquareLowestFScore(openList); //Get the square with the lowest FScore
 
-	//	closedList.push_back(currentSquare); // Add the lowest fscored square to closed list
-	//	removeFromVector(currentSquare, openList); // Remove the current Square from the openList
+		closedList.push_back(currentSquare); // Add the lowest fscored square to closed list
+		removeFromVector(currentSquare, openList); // Remove the current Square from the openList
 
-	//	if (vectorContains(destNode, closedList)) { // We are at the destination
+		if (vectorContains(destNode, closedList)) { // We are at the destination
 
-	//		customNode* tmp = currentSquare; // begin the tmp list from the current square
+			customNode* tmp = currentSquare; // begin the tmp list from the current square
 
-	//		do {
-	//			complete.push_back(tmp); // Add node to completed list
-	//			tmp = tmp->parent; // Go backward finding path
-	//		} while (tmp != nullptr); // Loop untill the parent is nullptr
+			do {
+				complete.push_back(tmp); // Add node to completed list
+				tmp = tmp->parent; // Go backward finding path
+			} while (tmp != nullptr); // Loop untill the parent is nullptr
 
-	//		break;
-	//	}
+			break;
+		}
 
-	//	std::vector<customNode*> adjacentSquares = getAdjacentSquares(currentSquare, destNode); // Get all the adjacent grid boxes - excluding walls
-
-
-	//	for (int index = 0; index < adjacentSquares.size(); index++) { // Loop through adjacent nodes/squares
-
-	//		if (vectorContains(adjacentSquares.at(index), closedList)) { // If the selected node/square is in the closedlist just ignore
-	//			continue;
-	//		}
-
-	//		if (!(vectorContains(adjacentSquares.at(index), openList))) { // if the square/node isnt in the open list then add it
-
-	//			openList.push_back(adjacentSquares.at(index));
-
-	//		}
-	//		else { // This is kinda optional but used to 'better' routes
-
-	//			if ((currentSquare->gScore + 1) < adjacentSquares.at(index)->gScore) { //Check if the adjacent square/node has a better gscore than the currentSquares
-
-	//				customNode* newOne = adjacentSquares.at(index); // Using that node we assign it to a new pointer
-	//				newOne->gScore = currentSquare->gScore + 1; // Add 1 to the score
-
-	//				removeFromVector(adjacentSquares.at(index), openList); // remove the old version with the old score from the open list 
-
-	//				openList.push_back(newOne); // re-add to list with new score
-
-	//			}
-
-	//		}
-
-	//	}
+		std::vector<customNode*> adjacentSquares = getAdjacentSquares(currentSquare, destNode); // Get all the adjacent grid boxes - excluding walls
 
 
-	//} while (!openList.empty()); // loop while the openList is not empty
+		for (int index = 0; index < adjacentSquares.size(); index++) { // Loop through adjacent nodes/squares
+
+			if (vectorContains(adjacentSquares.at(index), closedList)) { // If the selected node/square is in the closedlist just ignore
+				continue;
+			}
+
+			if (!(vectorContains(adjacentSquares.at(index), openList))) { // if the square/node isnt in the open list then add it
+
+				openList.push_back(adjacentSquares.at(index));
+
+			}
+			else { // This is kinda optional but used to 'better' routes
+
+				if ((currentSquare->gScore + 1) < adjacentSquares.at(index)->gScore) { //Check if the adjacent square/node has a better gscore than the currentSquares
+
+					customNode* newOne = adjacentSquares.at(index); // Using that node we assign it to a new pointer
+					newOne->gScore = currentSquare->gScore + 1; // Add 1 to the score
+
+					removeFromVector(adjacentSquares.at(index), openList); // remove the old version with the old score from the open list 
+
+					openList.push_back(newOne); // re-add to list with new score
+
+				}
+
+			}
+
+		}
 
 
-	//std::vector<Vector2> pathToReturn;
+	} while (!openList.empty()); // loop while the openList is not empty
 
 
-	//for (int i = complete.size(); i != 0; i--) {
-	//	pathToReturn.push_back(Vector2(complete.at(i - 1)->x, complete.at(i - 1)->y));
-	//}
+	std::vector<Vector2> pathToReturn;
 
-	////Releasing
-	//for (customNode* node : openList) {
-	//	delete node;
-	//}
-	//openList.empty();
-	//for (customNode* node : closedList) {
-	//	delete node;
-	//}
-	//closedList.empty();
-	//complete.empty();
 
-	////return pathToReturn;
+	for (int i = complete.size(); i != 0; i--) {
+		pathToReturn.push_back(Vector2(complete.at(i - 1)->x, complete.at(i - 1)->y));
+	}
 
+	//Releasing
+	for (customNode* node : openList) {
+		delete node;
+	}
+	openList.empty();
+	for (customNode* node : closedList) {
+		delete node;
+	}
+	closedList.empty();
+	complete.empty();
+
+	//return pathToReturn;
+	if (count == 50) {
+		if (pathToReturn.size() > 2) {
+			pathman_tile_x = pathToReturn[1].x;
+			pathman_tile_y = pathToReturn[1].y;
+		}
+		count = 0;
+	}
+	count++;
 }
 
 

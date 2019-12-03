@@ -59,7 +59,7 @@ static uint32_t	ghost_anim_counter;
 static int32_t	pathman_tile_x = 1;
 static int32_t	pathman_tile_y = 1;
 static int32_t	ghost_tile_x = 13;
-static int32_t	ghost_tile_y = 18;
+static int32_t	ghost_tile_y = 17;
 
 struct customNode {
 	int x;
@@ -140,7 +140,7 @@ bool vectorContains(customNode* containNode, std::vector<customNode*>& nodeVecto
 uint8_t GetObjectAtWorldPos(int32_t x, int32_t y) {
 	if (x < 0 || x > 28) return 0x00;
 	if (y < 0 || y > 31) return 0x00;
-	int gridCalculation = (x * 28) + y;
+	int gridCalculation = (y * 28) + x;
 	return tile_map[gridCalculation];
 }
 
@@ -265,16 +265,16 @@ void PathFind() {
 			}
 			else { // This is kinda optional but used to 'better' routes
 
-				if ((currentSquare->gScore + 1) < adjacentSquares.at(index)->gScore) { //Check if the adjacent square/node has a better gscore than the currentSquares
+				//if ((currentSquare->gScore + 1) < adjacentSquares.at(index)->gScore) { //Check if the adjacent square/node has a better gscore than the currentSquares
 
-					customNode* newOne = adjacentSquares.at(index); // Using that node we assign it to a new pointer
-					newOne->gScore = currentSquare->gScore + 1; // Add 1 to the score
+				//	customNode* newOne = adjacentSquares.at(index); // Using that node we assign it to a new pointer
+				//	newOne->gScore = currentSquare->gScore + 1; // Add 1 to the score
 
-					removeFromVector(adjacentSquares.at(index), openList); // remove the old version with the old score from the open list 
+				//	removeFromVector(adjacentSquares.at(index), openList); // remove the old version with the old score from the open list 
 
-					openList.push_back(newOne); // re-add to list with new score
+				//	openList.push_back(newOne); // re-add to list with new score
 
-				}
+				//}
 
 			}
 

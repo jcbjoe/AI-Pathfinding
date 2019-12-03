@@ -232,10 +232,6 @@ void PathFind() {
 
 	do {
 
-		if (closedList.size() == 35) {
-			auto lol = "";
-		}
-
 		customNode* currentSquare = getSquareLowestFScore(openList); //Get the square with the lowest FScore
 
 		closedList.push_back(currentSquare); // Add the lowest fscored square to closed list

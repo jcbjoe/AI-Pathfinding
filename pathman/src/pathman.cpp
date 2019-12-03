@@ -232,6 +232,10 @@ void PathFind() {
 
 	do {
 
+		if (closedList.size() == 35) {
+			auto lol = "";
+		}
+
 		customNode* currentSquare = getSquareLowestFScore(openList); //Get the square with the lowest FScore
 
 		closedList.push_back(currentSquare); // Add the lowest fscored square to closed list
@@ -265,16 +269,16 @@ void PathFind() {
 			}
 			else { // This is kinda optional but used to 'better' routes
 
-				//if ((currentSquare->gScore + 1) < adjacentSquares.at(index)->gScore) { //Check if the adjacent square/node has a better gscore than the currentSquares
+				if ((currentSquare->gScore + 1) < adjacentSquares.at(index)->gScore) { //Check if the adjacent square/node has a better gscore than the currentSquares
 
-				//	customNode* newOne = adjacentSquares.at(index); // Using that node we assign it to a new pointer
-				//	newOne->gScore = currentSquare->gScore + 1; // Add 1 to the score
+					customNode* newOne = adjacentSquares.at(index); // Using that node we assign it to a new pointer
+					newOne->gScore = currentSquare->gScore + 1; // Add 1 to the score
 
-				//	removeFromVector(adjacentSquares.at(index), openList); // remove the old version with the old score from the open list 
+					removeFromVector(adjacentSquares.at(index), openList); // remove the old version with the old score from the open list 
 
-				//	openList.push_back(newOne); // re-add to list with new score
+					openList.push_back(newOne); // re-add to list with new score
 
-				//}
+				}
 
 			}
 
@@ -303,7 +307,7 @@ void PathFind() {
 	complete.empty();
 
 	//return pathToReturn;
-	if (count == 50) {
+	if (count == 20) {
 		if (pathToReturn.size() > 2) {
 			pathman_tile_x = pathToReturn[1].x;
 			pathman_tile_y = pathToReturn[1].y;
